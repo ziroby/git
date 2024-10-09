@@ -16,6 +16,7 @@ struct shortlog {
 	int in2;
 	int user_format;
 	int abbrev;
+	unsigned int json:1;
 	struct date_mode date_mode;
 
 	enum {

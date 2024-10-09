@@ -32,6 +32,7 @@
 #include "wildmatch.h"
 #include "write-or-die.h"
 #include "pager.h"
+#include "json.h"
 
 static struct decoration name_decoration = { "object names" };
 static int decoration_loaded;
@@ -780,7 +781,7 @@ void show_log(struct rev_info *opt)
 		log_write_email_headers(opt, commit, &ctx.after_subject,
 					&ctx.need_8bit_cte, 1);
 		ctx.rev = opt;
-	} else if (opt->commit_format != CMIT_FMT_USERFORMAT) {
+	} else if (opt->commit_format != CMIT_FMT_USERFORMAT && opt->commit_format != CMIT_FMT_JSON) {
 		fputs(diff_get_color_opt(&opt->diffopt, DIFF_COMMIT), opt->diffopt.file);
 		if (opt->commit_format != CMIT_FMT_ONELINE)
 			fputs("commit ", opt->diffopt.file);
@@ -858,7 +859,11 @@ void show_log(struct rev_info *opt)
 		ctx.from_ident = &opt->from_ident;
 	if (opt->graph)
 		ctx.graph_width = graph_width(opt->graph);
-	pretty_print_commit(&ctx, commit, &msgbuf);
+    if (opt->commit_format == CMIT_FMT_JSON) {
+		json_print_commit(commit, &msgbuf);
+	} else { 
+		pretty_print_commit(&ctx, commit, &msgbuf);
+	}
 
 	if (opt->add_signoff)
 		append_signoff(&msgbuf, 0, APPEND_SIGNOFF_DEDUP);

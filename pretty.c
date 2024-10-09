@@ -21,6 +21,7 @@
 #include "trailer.h"
 #include "run-command.h"
 #include "object-name.h"
+#include "json.h"
 
 /*
  * The limit for formatting directives, which enable the caller to append
@@ -105,6 +106,10 @@ static int git_pretty_formats_config(const char *var, const char *value,
 		commit_format->is_tformat = 1;
 		commit_format->user_format = xstrdup(stripped);
 		free(fmt);
+	} else if (skip_prefix(fmt, "json:", &stripped)) {
+		commit_format->is_tformat = 0;
+		commit_format->user_format = xstrdup(stripped);
+		free(fmt);
 	} else if (strchr(fmt, '%')) {
 		commit_format->is_tformat = 1;
 		commit_format->user_format = fmt;
@@ -129,6 +134,7 @@ static void setup_commit_formats(void)
 		{ "oneline",	CMIT_FMT_ONELINE,	1,	0 },
 		{ "reference",	CMIT_FMT_USERFORMAT,	1,	0,
 			0, DATE_SHORT, "%C(auto)%h (%s, %ad)" },
+		{ "json", CMIT_FMT_JSON, 0, 0}
 		/*
 		 * Please update $__git_log_pretty_formats in
 		 * git-completion.bash when you add new formats.
@@ -192,7 +198,10 @@ void get_commit_format(const char *arg, struct rev_info *rev)
 
 	rev->use_terminator = 0;
 	if (!arg) {
-		rev->commit_format = CMIT_FMT_DEFAULT;
+		if (rev->json)
+			rev->commit_format = CMIT_FMT_JSON;
+		else 
+			rev->commit_format = CMIT_FMT_DEFAULT;
 		return;
 	}
 	if (skip_prefix(arg, "format:", &arg)) {
@@ -578,6 +587,10 @@ void pp_user_info(struct pretty_print_context *pp,
 		    last_line_length(sb) + strlen(" <") + maillen + strlen(">"))
 			strbuf_addch(sb, '\n');
 		strbuf_addf(sb, " <%.*s>\n", (int)maillen, mailbuf);
+	} else if (pp->fmt == CMIT_FMT_JSON) {
+		struct json_writer* jw;
+
+		
 	} else {
 		struct strbuf id = STRBUF_INIT;
 		enum grep_header_field field = GREP_HEADER_FIELD_MAX;
@@ -615,6 +628,10 @@ void pp_user_info(struct pretty_print_context *pp,
 		strbuf_addf(sb, "%sDate: %s\n", what,
 			    show_ident_date(&ident, pp->date_mode));
 		break;
+	case CMIT_FMT_JSON:
+		strbuf_addf(sb, "{\"%sDate\": \"%s\",\n", what,
+			    show_ident_date(&ident, pp->date_mode));
+
 	default:
 		/* notin' */
 		break;
@@ -2296,9 +2313,18 @@ void pretty_print_commit(struct pretty_print_context *pp,
 		return;
 	}
 
-	encoding = get_log_output_encoding();
+	if (pp->fmt == CMIT_FMT_JSON) 
+		encoding = "utf-8";
+	else
+		encoding = get_log_output_encoding();
+
 	msg = reencoded = repo_logmsg_reencode(the_repository, commit, NULL,
 					       encoding);
+
+	if (pp->fmt == CMIT_FMT_JSON) {
+		json_print_commit(commit, sb);
+		return;
+	}
 
 	if (pp->fmt == CMIT_FMT_ONELINE || cmit_fmt_is_mail(pp->fmt))
 		indent = 0;
