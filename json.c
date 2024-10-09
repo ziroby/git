@@ -6,6 +6,7 @@
 
 #include "json.h"
 #include "json-writer.h"
+#include "object-name.h"
 #include "strbuf.h"
 
 void json_print_commit(
@@ -18,7 +19,8 @@ void json_print_commit(
     jw_init(&jw);
     jw_object_begin(&jw, pretty);
 
-    
+    jw_object_string(&jw, "sha",
+        repo_find_unique_abbrev(the_repository, &commit->object.oid, 40));
 
     jw_end(&jw);
     strbuf_addbuf(sb, &jw.json);

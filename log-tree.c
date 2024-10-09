@@ -791,6 +791,7 @@ void show_log(struct rev_info *opt)
 		fputs(repo_find_unique_abbrev(the_repository, &commit->object.oid,
 					      abbrev_commit),
 		      opt->diffopt.file);
+			  
 		if (opt->print_parents)
 			show_parents(commit, abbrev_commit, opt->diffopt.file);
 		if (opt->children.name)
