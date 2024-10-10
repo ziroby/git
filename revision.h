@@ -12,6 +12,7 @@
 #include "ident.h"
 #include "list-objects-filter-options.h"
 #include "strvec.h"
+#include "json-writer.h"
 
 /**
  * The revision walking API offers functions to build a list of revisions
@@ -379,6 +380,9 @@ struct rev_info {
 
 	/* Missing commits to be tracked without failing traversal. */
 	struct oidset missing_commits;
+
+	/* Json writer for JSON output */
+	struct json_writer jw;
 };
 
 /**

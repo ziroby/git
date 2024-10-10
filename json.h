@@ -5,6 +5,6 @@
 
 void json_print_commit(
 			 const struct commit *commit,
-			 struct strbuf *sb);
+			 struct json_writer *jw);
 
 #endif /* JSON_H */

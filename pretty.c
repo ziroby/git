@@ -532,6 +532,7 @@ void pp_user_info(struct pretty_print_context *pp,
 	const char *mailbuf, *namebuf;
 	size_t namelen, maillen;
 	int max_length = 78; /* per rfc2822 */
+	struct json_writer block;
 
 	if (pp->fmt == CMIT_FMT_ONELINE)
 		return;
@@ -587,10 +588,6 @@ void pp_user_info(struct pretty_print_context *pp,
 		    last_line_length(sb) + strlen(" <") + maillen + strlen(">"))
 			strbuf_addch(sb, '\n');
 		strbuf_addf(sb, " <%.*s>\n", (int)maillen, mailbuf);
-	} else if (pp->fmt == CMIT_FMT_JSON) {
-		struct json_writer* jw;
-
-		
 	} else {
 		struct strbuf id = STRBUF_INIT;
 		enum grep_header_field field = GREP_HEADER_FIELD_MAX;
@@ -601,10 +598,25 @@ void pp_user_info(struct pretty_print_context *pp,
 		else if (!strcmp(what, "Commit"))
 			field = GREP_HEADER_COMMITTER;
 
-		strbuf_addf(sb, "%s: ", what);
+		if (pp->fmt == CMIT_FMT_JSON) {
+			jw_init(&block);
+			jw_object_begin(&block, 0);
+		} else
+			strbuf_addf(sb, "%s: ", what);
+
 		if (pp->fmt == CMIT_FMT_FULLER)
 			strbuf_addchars(sb, ' ', 4);
 
+		if (pp->fmt == CMIT_FMT_JSON) {
+			struct strbuf tsb;
+			strbuf_init(&tsb, namelen + 1);
+			strbuf_add(&tsb, namebuf, namelen);
+			jw_object_string(&block, "name", tsb.buf);
+			struct strbuf tsb2;
+			strbuf_init(&tsb2, maillen + 1);
+			strbuf_add(&tsb2, mailbuf, maillen);
+			jw_object_string(&block, "email", tsb2.buf);
+		} else
 		strbuf_addf(&id, "%.*s <%.*s>", (int)namelen, namebuf,
 			    (int)maillen, mailbuf);
 
@@ -629,9 +641,11 @@ void pp_user_info(struct pretty_print_context *pp,
 			    show_ident_date(&ident, pp->date_mode));
 		break;
 	case CMIT_FMT_JSON:
-		strbuf_addf(sb, "{\"%sDate\": \"%s\",\n", what,
+		jw_object_string(&block, "date",
 			    show_ident_date(&ident, pp->date_mode));
-
+		jw_end(&block);
+		jw_object_sub_jw(pp->jw, what, &block);
+		break;
 	default:
 		/* notin' */
 		break;
@@ -2100,7 +2114,7 @@ static void pp_header(struct pretty_print_context *pp,
 			pp_user_info(pp, "Author", sb, name, encoding);
 		}
 		if (skip_prefix(line, "committer ", &name) &&
-		    (pp->fmt == CMIT_FMT_FULL || pp->fmt == CMIT_FMT_FULLER)) {
+		    (pp->fmt == CMIT_FMT_FULL || pp->fmt == CMIT_FMT_FULLER || pp->fmt == CMIT_FMT_JSON)) {
 			strbuf_grow(sb, linelen + 80);
 			pp_user_info(pp, "Commit", sb, name, encoding);
 		}
@@ -2320,11 +2334,6 @@ void pretty_print_commit(struct pretty_print_context *pp,
 
 	msg = reencoded = repo_logmsg_reencode(the_repository, commit, NULL,
 					       encoding);
-
-	if (pp->fmt == CMIT_FMT_JSON) {
-		json_print_commit(commit, sb);
-		return;
-	}
 
 	if (pp->fmt == CMIT_FMT_ONELINE || cmit_fmt_is_mail(pp->fmt))
 		indent = 0;

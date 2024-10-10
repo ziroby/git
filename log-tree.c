@@ -781,7 +781,10 @@ void show_log(struct rev_info *opt)
 		log_write_email_headers(opt, commit, &ctx.after_subject,
 					&ctx.need_8bit_cte, 1);
 		ctx.rev = opt;
-	} else if (opt->commit_format != CMIT_FMT_USERFORMAT && opt->commit_format != CMIT_FMT_JSON) {
+	} if (opt->commit_format == CMIT_FMT_JSON) {
+		jw_init(&opt->jw);
+		json_print_commit(commit, &opt->jw);
+	} else if (opt->commit_format != CMIT_FMT_USERFORMAT) {
 		fputs(diff_get_color_opt(&opt->diffopt, DIFF_COMMIT), opt->diffopt.file);
 		if (opt->commit_format != CMIT_FMT_ONELINE)
 			fputs("commit ", opt->diffopt.file);
@@ -856,15 +859,14 @@ void show_log(struct rev_info *opt)
 	ctx.expand_tabs_in_log = opt->expand_tabs_in_log;
 	ctx.output_encoding = get_log_output_encoding();
 	ctx.rev = opt;
+	ctx.jw = &opt->jw;
 	if (opt->from_ident.mail_begin && opt->from_ident.name_begin)
 		ctx.from_ident = &opt->from_ident;
 	if (opt->graph)
-		ctx.graph_width = graph_width(opt->graph);
-    if (opt->commit_format == CMIT_FMT_JSON) {
-		json_print_commit(commit, &msgbuf);
-	} else { 
-		pretty_print_commit(&ctx, commit, &msgbuf);
-	}
+		ctx.graph_width = graph_width(opt->graph);	
+ 
+	pretty_print_commit(&ctx, commit, &msgbuf);
+
 
 	if (opt->add_signoff)
 		append_signoff(&msgbuf, 0, APPEND_SIGNOFF_DEDUP);
@@ -889,6 +891,13 @@ void show_log(struct rev_info *opt)
 		opt->missing_newline = 1;
 	else
 		opt->missing_newline = 0;
+
+	if (opt->commit_format == CMIT_FMT_JSON) {
+		jw_end(&opt->jw);
+	    strbuf_addbuf(&msgbuf, &opt->jw.json);
+    	jw_release(&opt->jw);
+
+	}
 
 	graph_show_commit_msg(opt->graph, opt->diffopt.file, &msgbuf);
 	if (opt->use_terminator && !commit_format_is_empty(opt->commit_format)) {
