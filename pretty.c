@@ -684,18 +684,33 @@ static void add_merge_info(const struct pretty_print_context *pp,
 	    !parent || !parent->next)
 		return;
 
-	strbuf_addstr(sb, "Merge:");
+	struct json_writer jw_merge;
+	if (pp->fmt == CMIT_FMT_JSON) {
+		jw_init(&jw_merge);
+		jw_array_begin(&jw_merge, 0);
+	} else {
+		strbuf_addstr(sb, "Merge:");		
+	}
 
 	while (parent) {
 		struct object_id *oidp = &parent->item->object.oid;
-		strbuf_addch(sb, ' ');
-		if (pp->abbrev)
-			strbuf_add_unique_abbrev(sb, oidp, pp->abbrev);
-		else
-			strbuf_addstr(sb, oid_to_hex(oidp));
+		if (pp->fmt == CMIT_FMT_JSON) {
+			jw_array_string(&jw_merge, oid_to_hex(oidp));
+		} else {
+			strbuf_addch(sb, ' ');
+			if (pp->abbrev)
+				strbuf_add_unique_abbrev(sb, oidp, pp->abbrev);
+			else
+				strbuf_addstr(sb, oid_to_hex(oidp));
+		}
 		parent = parent->next;
 	}
-	strbuf_addch(sb, '\n');
+	if (pp->fmt == CMIT_FMT_JSON) {
+		jw_end(&jw_merge);
+		jw_object_sub_jw(pp->jw, "merge", &jw_merge);
+	} else {
+		strbuf_addch(sb, '\n');
+	}
 }
 
 static char *get_header(const char *msg, const char *key)
@@ -2362,7 +2377,7 @@ void pretty_print_commit(struct pretty_print_context *pp,
 	}
 
 	pp_header(pp, encoding, commit, &msg, sb);
-	if (pp->fmt != CMIT_FMT_ONELINE && !cmit_fmt_is_mail(pp->fmt)) {
+	if (pp->fmt != CMIT_FMT_ONELINE && !cmit_fmt_is_mail(pp->fmt) && pp->fmt != CMIT_FMT_JSON) {
 		strbuf_addch(sb, '\n');
 	}
 
@@ -2377,12 +2392,14 @@ void pretty_print_commit(struct pretty_print_context *pp,
 		pp_email_subject(pp, &msg, sb, encoding, need_8bit_cte);
 
 	beginning_of_body = sb->len;
-	if (pp->fmt != CMIT_FMT_ONELINE)
+	if (pp->fmt == CMIT_FMT_JSON) {
+		jw_object_string(pp->jw, "message", msg);
+	} else if (pp->fmt != CMIT_FMT_ONELINE)
 		pp_remainder(pp, &msg, sb, indent);
 	strbuf_rtrim(sb);
 
 	/* Make sure there is an EOLN for the non-oneline case */
-	if (pp->fmt != CMIT_FMT_ONELINE)
+	if (pp->fmt != CMIT_FMT_ONELINE && pp->fmt != CMIT_FMT_JSON)
 		strbuf_addch(sb, '\n');
 
 	/*
