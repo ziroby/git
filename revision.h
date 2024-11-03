@@ -382,7 +382,7 @@ struct rev_info {
 	struct oidset missing_commits;
 
 	/* Json writer for JSON output */
-	struct json_writer jw;
+	struct json_writer *jw;
 };
 
 /**

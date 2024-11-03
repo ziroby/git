@@ -2564,6 +2564,7 @@ int cmd_format_patch(int argc,
 		}
 	}
 	stop_progress(&progress);
+	
 	free(list);
 	if (ignore_if_in_upstream)
 		free_patch_ids(&ids);

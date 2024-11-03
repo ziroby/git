@@ -19,3 +19,10 @@ void json_print_commit(
     jw_object_string(jw, "commit",
         repo_find_unique_abbrev(the_repository, &commit->object.oid, 40));
 }
+
+void json_init_log(struct json_writer* jw) {
+    jw_init(jw);
+    jw_object_begin(jw, 0);
+    jw_object_inline_begin_array(jw, "commits");
+}
+

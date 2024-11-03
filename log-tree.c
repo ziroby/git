@@ -782,8 +782,11 @@ void show_log(struct rev_info *opt)
 					&ctx.need_8bit_cte, 1);
 		ctx.rev = opt;
 	} if (opt->commit_format == CMIT_FMT_JSON) {
-		jw_init(&opt->jw);
-		json_print_commit(commit, &opt->jw);
+		if (!opt->jw) {
+			opt->jw = xmalloc(sizeof(struct json_writer));
+			json_init_log(opt->jw);
+		}
+		json_print_commit(commit, opt->jw);
 	} else if (opt->commit_format != CMIT_FMT_USERFORMAT) {
 		fputs(diff_get_color_opt(&opt->diffopt, DIFF_COMMIT), opt->diffopt.file);
 		if (opt->commit_format != CMIT_FMT_ONELINE)
@@ -859,7 +862,7 @@ void show_log(struct rev_info *opt)
 	ctx.expand_tabs_in_log = opt->expand_tabs_in_log;
 	ctx.output_encoding = get_log_output_encoding();
 	ctx.rev = opt;
-	ctx.jw = &opt->jw;
+	ctx.jw = opt->jw;
 	if (opt->from_ident.mail_begin && opt->from_ident.name_begin)
 		ctx.from_ident = &opt->from_ident;
 	if (opt->graph)
@@ -893,9 +896,8 @@ void show_log(struct rev_info *opt)
 		opt->missing_newline = 0;
 
 	if (opt->commit_format == CMIT_FMT_JSON) {
-		jw_end(&opt->jw);
-	    strbuf_addbuf(&msgbuf, &opt->jw.json);
-    	jw_release(&opt->jw);
+		jw_end(opt->jw);
+	    // strbuf_addbuf(&msgbuf, &opt->jw->json);
 
 	}
 
