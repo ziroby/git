@@ -87,6 +87,12 @@ void userformat_find_requirements(const char *fmt, struct userformat_want *w);
 void pp_commit_easy(enum cmit_fmt fmt, const struct commit *commit,
 			struct strbuf *sb);
 
+/** Rename me and give a good comment */
+void json_user_info(struct json_writer *block,
+		  const char *what,
+		  const char *buf,
+		  size_t len);
+
 /*
  * Get information about user and date from "line", format it and
  * put it into "sb".

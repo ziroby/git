@@ -523,6 +523,20 @@ static int use_in_body_from(const struct pretty_print_context *pp,
 	return 0;
 }
 
+void json_user_info(struct json_writer *block,
+		  const char *what,
+		  const char *buf,
+		  size_t len)
+{
+	struct strbuf tsb;
+	strbuf_init(&tsb, len + 1);
+	strbuf_add(&tsb, buf, len);
+	jw_object_string(block, what, tsb.buf);
+
+}
+
+
+
 void pp_user_info(struct pretty_print_context *pp,
 		  const char *what, struct strbuf *sb,
 		  const char *line, const char *encoding)
@@ -608,21 +622,16 @@ void pp_user_info(struct pretty_print_context *pp,
 			strbuf_addchars(sb, ' ', 4);
 
 		if (pp->fmt == CMIT_FMT_JSON) {
-			struct strbuf tsb;
-			strbuf_init(&tsb, namelen + 1);
-			strbuf_add(&tsb, namebuf, namelen);
-			jw_object_string(&block, "name", tsb.buf);
-			struct strbuf tsb2;
-			strbuf_init(&tsb2, maillen + 1);
-			strbuf_add(&tsb2, mailbuf, maillen);
-			jw_object_string(&block, "email", tsb2.buf);
-		} else
-		strbuf_addf(&id, "%.*s <%.*s>", (int)namelen, namebuf,
-			    (int)maillen, mailbuf);
+			json_user_info(&block, "name", namebuf, namelen);
+			json_user_info(&block, "email", mailbuf, maillen);
+		} else {
+			strbuf_addf(&id, "%.*s <%.*s>", (int)namelen, namebuf,
+					(int)maillen, mailbuf);
 
-		append_line_with_color(sb, opt, id.buf, id.len, pp->color,
-				       GREP_CONTEXT_HEAD, field);
-		strbuf_addch(sb, '\n');
+			append_line_with_color(sb, opt, id.buf, id.len, pp->color,
+						GREP_CONTEXT_HEAD, field);
+			strbuf_addch(sb, '\n');
+		}
 		strbuf_release(&id);
 	}
 
@@ -644,7 +653,7 @@ void pp_user_info(struct pretty_print_context *pp,
 		jw_object_string(&block, "date",
 			    show_ident_date(&ident, pp->date_mode));
 		jw_end(&block);
-		jw_object_sub_jw(pp->jw, what, &block);
+		jw_object_sub_jw(pp->jw, !strcmp(what, "Author")? "author" : "committer", &block);
 		break;
 	default:
 		/* notin' */
@@ -679,12 +688,12 @@ static void add_merge_info(const struct pretty_print_context *pp,
 			   struct strbuf *sb, const struct commit *commit)
 {
 	struct commit_list *parent = commit->parents;
+	struct json_writer jw_merge;
 
 	if ((pp->fmt == CMIT_FMT_ONELINE) || (cmit_fmt_is_mail(pp->fmt)) ||
 	    !parent || !parent->next)
 		return;
 
-	struct json_writer jw_merge;
 	if (pp->fmt == CMIT_FMT_JSON) {
 		jw_init(&jw_merge);
 		jw_array_begin(&jw_merge, 0);
