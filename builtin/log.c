@@ -521,6 +521,8 @@ static int cmd_log_walk_no_free(struct rev_info *rev)
 	 * and HAS_CHANGES being accumulated in rev->diffopt, so be careful to
 	 * retain that state information if replacing rev->diffopt in this loop
 	 */
+	// TODO: Initialise jw
+	printf("TODO: Initialise jw Ziroby 7:45");
 	while ((commit = get_revision(rev)) != NULL) {
 		if (!log_tree_commit(rev, commit) && rev->max_count >= 0)
 			/*
@@ -543,6 +545,12 @@ static int cmd_log_walk_no_free(struct rev_info *rev)
 		if (rev->diffopt.degraded_cc_to_c)
 			saved_dcctc = 1;
 	}
+	// TODO: Print jw
+		printf("TODO: print jw Ziroby 7:45");
+	if (rev->jw) {
+		printf(rev->jw->json);
+	}
+
 	rev->diffopt.degraded_cc_to_c = saved_dcctc;
 	rev->diffopt.needed_rename_limit = saved_nrl;
 
@@ -2564,7 +2572,7 @@ int cmd_format_patch(int argc,
 		}
 	}
 	stop_progress(&progress);
-	
+
 	free(list);
 	if (ignore_if_in_upstream)
 		free_patch_ids(&ids);
