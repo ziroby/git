@@ -523,19 +523,6 @@ static int use_in_body_from(const struct pretty_print_context *pp,
 	return 0;
 }
 
-void json_user_info(struct json_writer *block,
-		  const char *what,
-		  const char *buf,
-		  size_t len)
-{
-	struct strbuf tsb;
-	strbuf_init(&tsb, len + 1);
-	strbuf_add(&tsb, buf, len);
-	jw_object_string(block, what, tsb.buf);
-
-}
-
-
 
 void pp_user_info(struct pretty_print_context *pp,
 		  const char *what, struct strbuf *sb,

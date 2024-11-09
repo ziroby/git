@@ -11,6 +11,7 @@
 #include "environment.h"
 #include "gettext.h"
 #include "hex.h"
+#include "json.h"
 #include "refs.h"
 #include "object-file.h"
 #include "object-name.h"
@@ -522,7 +523,11 @@ static int cmd_log_walk_no_free(struct rev_info *rev)
 	 * retain that state information if replacing rev->diffopt in this loop
 	 */
 	// TODO: Initialise jw
-	printf("TODO: Initialise jw Ziroby 7:45");
+	// printf("TODO: Initialise jw Ziroby 7:45");
+	if (rev->commit_format == CMIT_FMT_JSON) {
+		rev->jw = xmalloc(sizeof(struct json_writer));
+		json_init_log(rev->jw);
+	}
 	while ((commit = get_revision(rev)) != NULL) {
 		if (!log_tree_commit(rev, commit) && rev->max_count >= 0)
 			/*
@@ -546,9 +551,12 @@ static int cmd_log_walk_no_free(struct rev_info *rev)
 			saved_dcctc = 1;
 	}
 	// TODO: Print jw
-		printf("TODO: print jw Ziroby 7:45");
+		// printf("TODO: print jw Ziroby 7:45");
 	if (rev->jw) {
-		printf(rev->jw->json);
+		jw_end(rev->jw);
+		jw_end(rev->jw);
+		fprintf(rev->diffopt.file, "%s\n", rev->jw->json.buf);
+		jw_release(rev->jw);
 	}
 
 	rev->diffopt.degraded_cc_to_c = saved_dcctc;

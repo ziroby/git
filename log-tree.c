@@ -782,10 +782,10 @@ void show_log(struct rev_info *opt)
 					&ctx.need_8bit_cte, 1);
 		ctx.rev = opt;
 	} if (opt->commit_format == CMIT_FMT_JSON) {
-		if (!opt->jw) {
-			opt->jw = xmalloc(sizeof(struct json_writer));
-			json_init_log(opt->jw);
-		}
+		// if (!opt->jw) {
+		// 	opt->jw = xmalloc(sizeof(struct json_writer));
+		// 	json_init_log(opt->jw);
+		// }
 		json_print_commit(commit, opt->jw);
 	} else if (opt->commit_format != CMIT_FMT_USERFORMAT) {
 		fputs(diff_get_color_opt(&opt->diffopt, DIFF_COMMIT), opt->diffopt.file);
