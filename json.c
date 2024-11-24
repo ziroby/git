@@ -21,7 +21,7 @@ void json_print_commit(
 }
 
 void json_init_log(struct json_writer* jw) {
-    jw_init(jw);
+	jw_init(jw);
     jw_object_begin(jw, pretty);
     jw_object_inline_begin_array(jw, "commits");
 }
@@ -36,4 +36,15 @@ void json_user_info(struct json_writer *block,
 	strbuf_add(&tsb, buf, len);
 	jw_object_string(block, what, tsb.buf);
 
+}
+
+void json_end_commit(struct json_writer* jw) {
+	jw_end(jw);
+} 
+
+void json_end(struct json_writer* jw, FILE* file) {
+		jw_end(jw);
+		jw_end(jw);
+		fprintf(file, "%s\n", jw->json.buf);
+		jw_release(jw);
 }

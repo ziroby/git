@@ -553,10 +553,7 @@ static int cmd_log_walk_no_free(struct rev_info *rev)
 	// TODO: Print jw
 		// printf("TODO: print jw Ziroby 7:45");
 	if (rev->jw) {
-		jw_end(rev->jw);
-		jw_end(rev->jw);
-		fprintf(rev->diffopt.file, "%s\n", rev->jw->json.buf);
-		jw_release(rev->jw);
+		json_end(rev->jw, rev->diffopt.file);
 	}
 
 	rev->diffopt.degraded_cc_to_c = saved_dcctc;

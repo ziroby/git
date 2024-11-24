@@ -14,5 +14,8 @@ void json_user_info(struct json_writer *block,
 		  const char *what,
 		  const char *buf,
 		  size_t len);
-		  
+
+void json_end_commit(struct json_writer* jw);
+
+void json_end(struct json_writer* jw, FILE* file);
 #endif /* JSON_H */
