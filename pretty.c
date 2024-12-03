@@ -637,8 +637,7 @@ void pp_user_info(struct pretty_print_context *pp,
 			    show_ident_date(&ident, pp->date_mode));
 		break;
 	case CMIT_FMT_JSON:
-		jw_object_string(&block, "date",
-			    show_ident_date(&ident, pp->date_mode));
+		json_add_date(&block, &ident);
 		jw_end(&block);
 		jw_object_sub_jw(pp->jw, !strcmp(what, "Author")? "author" : "committer", &block);
 		break;

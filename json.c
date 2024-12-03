@@ -38,6 +38,12 @@ void json_user_info(struct json_writer *block,
 
 }
 
+void json_add_date(struct json_writer *block, struct ident_split *ident) {
+	jw_object_string(block, "date", 
+		show_ident_date(ident, DATE_MODE(ISO8601_STRICT)));
+}
+
+
 void json_end_commit(struct json_writer* jw) {
 	jw_end(jw);
 } 

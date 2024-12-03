@@ -15,6 +15,8 @@ void json_user_info(struct json_writer *block,
 		  const char *buf,
 		  size_t len);
 
+void json_add_date(struct json_writer *block, struct ident_split *ident);
+
 void json_end_commit(struct json_writer* jw);
 
 void json_end(struct json_writer* jw, FILE* file);
