@@ -674,23 +674,23 @@ static void add_merge_info(const struct pretty_print_context *pp,
 			   struct strbuf *sb, const struct commit *commit)
 {
 	struct commit_list *parent = commit->parents;
-	struct json_writer jw_merge;
+	struct json_writer *jw_merge;
 
 	if ((pp->fmt == CMIT_FMT_ONELINE) || (cmit_fmt_is_mail(pp->fmt)) ||
 	    !parent || !parent->next)
 		return;
 
 	if (pp->fmt == CMIT_FMT_JSON) {
-		jw_init(&jw_merge);
-		jw_array_begin(&jw_merge, 0);
+		jw_merge = json_begin_merge_list();
 	} else {
-		strbuf_addstr(sb, "Merge:");		
+		strbuf_addstr(sb, "Merge:");	
+		jw_merge = 0;	
 	}
 
 	while (parent) {
 		struct object_id *oidp = &parent->item->object.oid;
 		if (pp->fmt == CMIT_FMT_JSON) {
-			jw_array_string(&jw_merge, oid_to_hex(oidp));
+			json_add_merge(jw_merge, oid_to_hex(oidp));
 		} else {
 			strbuf_addch(sb, ' ');
 			if (pp->abbrev)
@@ -701,8 +701,7 @@ static void add_merge_info(const struct pretty_print_context *pp,
 		parent = parent->next;
 	}
 	if (pp->fmt == CMIT_FMT_JSON) {
-		jw_end(&jw_merge);
-		jw_object_sub_jw(pp->jw, "merge", &jw_merge);
+		json_end_merge_list(pp->jw, jw_merge);
 	} else {
 		strbuf_addch(sb, '\n');
 	}

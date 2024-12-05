@@ -43,6 +43,22 @@ void json_add_date(struct json_writer *block, struct ident_split *ident) {
 		show_ident_date(ident, DATE_MODE(ISO8601_STRICT)));
 }
 
+struct json_writer *json_begin_merge_list(void) {
+	struct json_writer *jw_merge;
+	jw_merge = xmalloc(sizeof(*jw_merge));
+	jw_init(jw_merge);
+	jw_array_begin(jw_merge, pretty);
+	return jw_merge;
+}
+
+void json_add_merge(struct json_writer *jw_merge, char *merge_id) {
+	jw_array_string(jw_merge, merge_id);
+}
+
+void json_end_merge_list(struct json_writer *block, struct json_writer *jw_merge) {
+	jw_end(jw_merge);
+	jw_object_sub_jw(block, "merge", jw_merge);
+}
 
 void json_end_commit(struct json_writer* jw) {
 	jw_end(jw);

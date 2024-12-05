@@ -17,6 +17,12 @@ void json_user_info(struct json_writer *block,
 
 void json_add_date(struct json_writer *block, struct ident_split *ident);
 
+struct json_writer *json_begin_merge_list(void);
+
+void json_add_merge(struct json_writer *jw_merge,char *oidp);
+
+void json_end_merge_list(struct json_writer *block, struct json_writer *jw_merge);
+
 void json_end_commit(struct json_writer* jw);
 
 void json_end(struct json_writer* jw, FILE* file);
