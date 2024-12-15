@@ -6,18 +6,43 @@
 
 #include "json.h"
 #include "json-writer.h"
+#include "log-tree.h"
 #include "object-name.h"
 #include "strbuf.h"
 
 int pretty = 1;
 
 void json_print_commit(
-			 const struct commit *commit,
-			 struct json_writer *jw) 
+	const struct commit *commit,
+	struct json_writer *jw) 
 {
     jw_object_begin(jw, pretty);
     jw_object_string(jw, "commit",
         repo_find_unique_abbrev(the_repository, &commit->object.oid, 40));
+}
+
+/**
+ * This method was mostly copied from format_decorations
+ */
+void json_add_decorations(
+	const struct commit *commit,
+	struct json_writer *jw) 
+{
+	const struct name_decoration *decoration;
+	const struct name_decoration *current_and_HEAD;
+
+	decoration = get_name_decoration(&commit->object);
+	if (!decoration)
+		return;
+	
+	current_and_HEAD = current_pointed_by_HEAD(decoration);
+
+	while (decoration) {
+		if (decoration != current_and_HEAD) {
+			jw_object_string(jw, "ref", decoration->name);
+		}
+		decoration = decoration->next;
+	}
 }
 
 void json_init_log(struct json_writer* jw) {

@@ -38,4 +38,6 @@ void fmt_output_commit(struct strbuf *, struct commit *, struct rev_info *);
 void fmt_output_subject(struct strbuf *, const char *subject, struct rev_info *);
 void fmt_output_email_subject(struct strbuf *, struct rev_info *);
 
+const struct name_decoration *current_pointed_by_HEAD(const struct name_decoration *decoration);
+
 #endif

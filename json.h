@@ -7,8 +7,11 @@ void json_print_commit(
 			 const struct commit *commit,
 			 struct json_writer *jw);
 
-void json_init_log(struct json_writer* jw);
+void json_add_decorations(
+	const struct commit *commit,
+	struct json_writer *jw);
 
+void json_init_log(struct json_writer* jw);
 /** Rename me and give a good comment */
 void json_user_info(struct json_writer *block,
 		  const char *what,

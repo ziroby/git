@@ -267,7 +267,7 @@ static void show_children(struct rev_info *opt, struct commit *commit, int abbre
  * Do we have HEAD in the output, and also the branch it points at?
  * If so, find that decoration entry for that current branch.
  */
-static const struct name_decoration *current_pointed_by_HEAD(const struct name_decoration *decoration)
+const struct name_decoration *current_pointed_by_HEAD(const struct name_decoration *decoration)
 {
 	const struct name_decoration *list, *head = NULL;
 	const char *branch_name = NULL;
@@ -783,6 +783,7 @@ void show_log(struct rev_info *opt)
 		ctx.rev = opt;
 	} if (opt->commit_format == CMIT_FMT_JSON) {
 		json_print_commit(commit, opt->jw);
+		json_add_decorations(commit, opt->jw);
 	} else if (opt->commit_format != CMIT_FMT_USERFORMAT) {
 		fputs(diff_get_color_opt(&opt->diffopt, DIFF_COMMIT), opt->diffopt.file);
 		if (opt->commit_format != CMIT_FMT_ONELINE)
