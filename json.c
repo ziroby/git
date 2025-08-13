@@ -37,12 +37,14 @@ void json_add_decorations(
 	
 	current_and_HEAD = current_pointed_by_HEAD(decoration);
 
+	jw_object_inline_begin_array(jw, "refs");
 	while (decoration) {
 		if (decoration != current_and_HEAD) {
-			jw_object_string(jw, "ref", decoration->name);
+			jw_array_string(jw, decoration->name);
 		}
 		decoration = decoration->next;
 	}
+	jw_end(jw);
 }
 
 void json_init_log(struct json_writer* jw) {
@@ -66,6 +68,8 @@ void json_user_info(struct json_writer *block,
 void json_add_date(struct json_writer *block, struct ident_split *ident) {
 	jw_object_string(block, "date", 
 		show_ident_date(ident, DATE_MODE(ISO8601_STRICT)));
+	jw_object_string(block, "timestamp", 
+		show_ident_date(ident, DATE_MODE(UNIX)));
 }
 
 struct json_writer *json_begin_merge_list(void) {
